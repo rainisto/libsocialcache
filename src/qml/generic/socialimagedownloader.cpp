@@ -66,6 +66,8 @@ void SocialImageDownloader::imageFile(const QString &imageUrl,
 {
     Q_D(SocialImageDownloader);
 
+    qDebug("SocialImageDownloader::imageFile");
+
     if (imageUrl.isEmpty() || caller == 0) {
         return;
     }
@@ -73,16 +75,20 @@ void SocialImageDownloader::imageFile(const QString &imageUrl,
     QMutexLocker locker(&d->m_mutex);
     QString recent = d->m_recentItems.value(imageUrl);
     if (!recent.isEmpty()) {
+        qDebug("WAS RECENT");
         QMetaObject::invokeMethod(caller, "imageCached", Q_ARG(QVariant, recent));
         return;
     } else {
         SocialImage::ConstPtr image = d->m_db.image(imageUrl);
         if (image != 0) {
+            qDebug("WAS CACHED");
             d->m_recentItems.insert(imageUrl, image->imageFile());
             QMetaObject::invokeMethod(caller, "imageCached", Q_ARG(QVariant, image->imageFile()));
             return;
         }
     }
+
+    qDebug("QUEUE");
 
     d->m_ongoingCalls.insert(imageUrl, QPointer<QObject>(caller));
 
